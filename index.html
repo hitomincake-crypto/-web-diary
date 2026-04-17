@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>日記アプリ</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+
+  <!-- ログイン -->
+  <div id="loginArea">
+    <h2>ログイン</h2>
+    <input id="email" placeholder="Email">
+    <input id="password" type="password" placeholder="Password">
+    <button onclick="login()">ログイン</button>
+  </div>
+
+  <!-- アプリ -->
+  <div id="app" style="display:none;">
+
+    <!-- カレンダー画面 -->
+    <div id="calendarView" class="card">
+      <div class="header">
+        <button onclick="prevMonth()">←</button>
+        <h2 id="monthLabel"></h2>
+        <button onclick="nextMonth()">→</button>
+      </div>
+      <div id="calendar"></div>
+    </div>
+
+    <!-- 日別画面 -->
+    <div id="dayView" class="card" style="display:none;">
+      <button onclick="showView('calendarView')">←戻る</button>
+      <h3 id="selectedDate"></h3>
+      <button onclick="openEditor()">＋投稿</button>
+      <div id="dailyList"></div>
+    </div>
+
+    <!-- 投稿画面 -->
+    <div id="editorView" class="card" style="display:none;">
+      <button onclick="showView('dayView')">←戻る</button>
+      <h3>日記を書く</h3>
+      <input id="title" placeholder="タイトル">
+      <textarea id="content" placeholder="本文"></textarea>
+      <button onclick="saveDiary()">保存</button>
+    </div>
+
+  </div>
+
+</div>
+
+<script type="module" src="main.js"></script>
+</body>
+</html>
