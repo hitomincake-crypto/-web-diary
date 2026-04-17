@@ -4,9 +4,10 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 import {
-  getFirestore, collection, addDoc, serverTimestamp,
-  query, where, getDocs
+  getFirestore, collection, addDoc, doc, setDoc, getDoc,
+  query, where, getDocs, updateDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
 
 const firebaseConfig = {
 
@@ -30,31 +31,51 @@ initializeApp(firebaseConfig);
 const auth = getAuth();
 const db = getFirestore();
 
-const loginArea = document.getElementById("loginArea");
-const appArea = document.getElementById("app");
-
 let currentDate = new Date();
 let selectedDateStr = "";
 let editingId = null;
+let nickname = "";
 
 // ログイン
 window.login = async () => {
   await signInWithEmailAndPassword(
     auth,
-    document.getElementById("email").value,
-    document.getElementById("password").value
+    email.value,
+    password.value
   );
 };
 
 // ログイン後
-onAuthStateChanged(auth, user => {
-  if (user) {
-    loginArea.style.display = "none";
-    appArea.style.display = "block";
+onAuthStateChanged(auth, async user => {
+  if (!user) return;
+
+  loginArea.style.display = "none";
+
+  const userDoc = await getDoc(doc(db, "users", user.uid));
+
+  if (!userDoc.exists()) {
+    nicknameArea.style.display = "block";
+  } else {
+    nickname = userDoc.data().nickname;
+    app.style.display = "block";
     showView("calendarView");
     renderCalendar();
   }
 });
+
+// ニックネーム保存
+window.saveNickname = async () => {
+  const user = auth.currentUser;
+  nickname = nicknameInput.value;
+
+  await setDoc(doc(db, "users", user.uid), {
+    nickname: nickname
+  });
+
+  nicknameArea.style.display = "none";
+  app.style.display = "block";
+  renderCalendar();
+};
 
 // 画面切り替え
 window.showView = (id) => {
@@ -72,19 +93,13 @@ async function renderCalendar() {
   const y = currentDate.getFullYear();
   const m = currentDate.getMonth();
 
-  document.getElementById("monthLabel").textContent = `${y}年 ${m+1}月`;
+  monthLabel.textContent = `${y}年 ${m+1}月`;
 
-  const snap = await getDocs(query(
-    collection(db,"diaries"),
-    where("userId","==",auth.currentUser.uid)
-  ));
+  const snap = await getDocs(collection(db,"diaries"));
 
   const map = {};
-
   snap.forEach(d=>{
     const data = d.data();
-
-    // 👇ここが重要
     if(data.isDeleted) return;
     if(!data.createdAt) return;
 
@@ -111,93 +126,61 @@ async function renderCalendar() {
   }
 }
 
-// 月移動
-window.prevMonth=()=>{currentDate.setMonth(currentDate.getMonth()-1);renderCalendar();}
-window.nextMonth=()=>{currentDate.setMonth(currentDate.getMonth()+1);renderCalendar();}
-
 // 日表示
-window.openDay=async(dateStr)=>{
-  selectedDateStr=dateStr;
+window.openDay = async (dateStr) => {
+  selectedDateStr = dateStr;
   showView("dayView");
 
-  document.getElementById("selectedDate").textContent=dateStr;
+  selectedDate.textContent = dateStr;
+  dailyList.innerHTML = "";
 
-  const list=document.getElementById("dailyList");
-  list.innerHTML="";
-
-  const snap=await getDocs(query(
-    collection(db,"diaries"),
-    where("userId","==",auth.currentUser.uid)
-  ));
+  const snap = await getDocs(collection(db,"diaries"));
 
   snap.forEach(d=>{
-    const data=d.data();
-
-    // 👇ここが重要
+    const data = d.data();
     if(data.isDeleted) return;
-    if(!data.createdAt) return;
 
-    const key=new Date(data.createdAt.seconds*1000).toISOString().split("T")[0];
+    const key = new Date(data.createdAt.seconds*1000).toISOString().split("T")[0];
 
-    if(key===dateStr){
-      const div=document.createElement("div");
+    if(key === dateStr){
+      const div = document.createElement("div");
       div.className="diary-card";
 
-      div.innerHTML=`
-        <h4>${data.title||"(無題)"}</h4>
+      div.innerHTML = `
+        <div class="nickname">${data.nickname || "不明"}</div>
+        <h4>${data.title}</h4>
         <p>${data.content}</p>
-        <div>
-          <button onclick="editDiary('${d.id}')">編集</button>
-          <button onclick="deleteDiary('${d.id}')">削除</button>
-        </div>
+        <button onclick="deleteDiary('${d.id}')">削除</button>
       `;
 
-      list.appendChild(div);
+      dailyList.appendChild(div);
     }
   });
 };
 
-// 編集
-window.editDiary=async(id)=>{
-  editingId=id;
+// 投稿
+window.openEditor = () => showView("editorView");
 
-  const snap=await getDocs(collection(db,"diaries"));
-  snap.forEach(d=>{
-    if(d.id===id){
-      const data=d.data();
-      document.getElementById("title").value=data.title;
-      document.getElementById("content").value=data.content;
-    }
+window.saveDiary = async () => {
+  const selectedDate = new Date(selectedDateStr+"T12:00:00");
+
+  await addDoc(collection(db,"diaries"), {
+    userId: auth.currentUser.uid,
+    nickname: nickname,
+    title: title.value,
+    content: content.value,
+    createdAt: selectedDate,
+    isDeleted: false
   });
-
-  showView("editorView");
-};
-
-// 保存
-window.saveDiary=async()=>{
-  const selectedDate=new Date(selectedDateStr+"T12:00:00");
-
-  const data={
-    userId:auth.currentUser.uid,
-    title:document.getElementById("title").value,
-    content:document.getElementById("content").value,
-    createdAt:selectedDate,
-    isDeleted:false
-  };
-
-  if(editingId){
-    await updateDoc(doc(db,"diaries",editingId),data);
-    editingId=null;
-  }else{
-    await addDoc(collection(db,"diaries"),data);
-  }
 
   showView("dayView");
   openDay(selectedDateStr);
 };
 
 // 削除
-window.deleteDiary=async(id)=>{
-  await updateDoc(doc(db,"diaries",id),{isDeleted:true});
+window.deleteDiary = async (id) => {
+  await updateDoc(doc(db,"diaries",id),{
+    isDeleted:true
+  });
   openDay(selectedDateStr);
 };

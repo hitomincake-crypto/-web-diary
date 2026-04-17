@@ -1,82 +1,62 @@
-body {
-  margin: 0;
-  font-family: 'Segoe UI', sans-serif;
-  background: #f1f3f4;
-}
+body { margin:0; font-family:sans-serif; background:#f1f3f4; }
 
 .header {
-  background: #1a73e8;
-  color: white;
-  padding: 14px;
-  text-align: center;
+  background:#1a73e8;
+  color:white;
+  padding:14px;
+  text-align:center;
 }
 
-.container {
-  max-width: 700px;
-  margin: auto;
-  padding: 10px;
-}
+.container { max-width:700px; margin:auto; padding:10px; }
 
 .card {
-  background: white;
-  padding: 16px;
-  margin-top: 10px;
-  border-radius: 10px;
+  background:white;
+  padding:16px;
+  margin-top:10px;
+  border-radius:10px;
 }
 
-.calendar-header {
-  display: flex;
-  justify-content: space-between;
-}
+.calendar-header { display:flex; justify-content:space-between; }
 
 #calendar {
-  display: grid;
-  grid-template-columns: repeat(7,1fr);
-  gap: 5px;
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  gap:5px;
 }
 
 .day {
-  padding: 12px;
-  text-align: center;
-  border-radius: 8px;
-  cursor: pointer;
+  padding:12px;
+  text-align:center;
+  border-radius:8px;
+  cursor:pointer;
 }
 
-.day.has-post {
-  background: #cfe2ff;
-}
+.day.has-post { background:#cfe2ff; }
 
 button {
-  margin-top: 8px;
-  padding: 8px;
-  background: #1a73e8;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
+  margin-top:8px;
+  padding:8px;
+  background:#1a73e8;
+  color:white;
+  border:none;
+  border-radius:6px;
 }
 
 .fab {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  border-radius: 50%;
-  width: 55px;
-  height: 55px;
-  font-size: 22px;
+  position:fixed;
+  bottom:20px;
+  right:20px;
+  width:55px;
+  height:55px;
+  border-radius:50%;
 }
 
-/* 日記カード */
 .diary-card {
-  border-bottom: 1px solid #eee;
-  padding: 8px 0;
+  border-bottom:1px solid #eee;
+  padding:8px 0;
 }
 
-.diary-actions button {
-  margin-right: 5px;
-  background: #5f6368;
-}
-
-.diary-actions button.delete {
-  background: #d93025;
+.nickname {
+  font-size:12px;
+  color:#666;
 }

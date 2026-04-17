@@ -13,6 +13,7 @@
 
 <div class="container">
 
+  <!-- ログイン -->
   <div id="loginArea" class="card">
     <h2>ログイン</h2>
     <input id="email" placeholder="Email">
@@ -20,6 +21,14 @@
     <button onclick="login()">ログイン</button>
   </div>
 
+  <!-- ニックネーム設定 -->
+  <div id="nicknameArea" class="card" style="display:none;">
+    <h2>ニックネーム設定</h2>
+    <input id="nicknameInput" placeholder="ニックネーム">
+    <button onclick="saveNickname()">保存</button>
+  </div>
+
+  <!-- アプリ -->
   <div id="app" style="display:none;">
 
     <!-- カレンダー -->
