@@ -1,7 +1,14 @@
 body {
-  font-family: sans-serif;
-  background: #f1f3f4;
   margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background: #f1f3f4;
+}
+
+.header {
+  background: #1a73e8;
+  color: white;
+  padding: 14px;
+  text-align: center;
 }
 
 .container {
@@ -12,30 +19,27 @@ body {
 
 .card {
   background: white;
-  padding: 15px;
+  padding: 16px;
   margin-top: 10px;
   border-radius: 10px;
 }
 
-.header {
+.calendar-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
 }
 
 #calendar {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7,1fr);
   gap: 5px;
-  margin-top: 10px;
 }
 
 .day {
   padding: 12px;
   text-align: center;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
-  background: #fff;
 }
 
 .day.has-post {
@@ -43,22 +47,36 @@ body {
 }
 
 button {
-  margin: 5px 2px;
-  padding: 8px 12px;
-  border: none;
+  margin-top: 8px;
+  padding: 8px;
   background: #1a73e8;
   color: white;
+  border: none;
   border-radius: 6px;
   cursor: pointer;
 }
 
-input, textarea {
-  width: 100%;
-  margin-top: 8px;
-  padding: 8px;
-  box-sizing: border-box;
+.fab {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  border-radius: 50%;
+  width: 55px;
+  height: 55px;
+  font-size: 22px;
 }
 
-textarea {
-  height: 120px;
+/* 日記カード */
+.diary-card {
+  border-bottom: 1px solid #eee;
+  padding: 8px 0;
+}
+
+.diary-actions button {
+  margin-right: 5px;
+  background: #5f6368;
+}
+
+.diary-actions button.delete {
+  background: #d93025;
 }

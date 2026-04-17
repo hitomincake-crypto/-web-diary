@@ -2,27 +2,29 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>日記アプリ</title>
+  <title>Web Diary</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
+<header class="header">
+  <h1>📅 Web Diary</h1>
+</header>
+
 <div class="container">
 
-  <!-- ログイン -->
-  <div id="loginArea">
+  <div id="loginArea" class="card">
     <h2>ログイン</h2>
     <input id="email" placeholder="Email">
     <input id="password" type="password" placeholder="Password">
     <button onclick="login()">ログイン</button>
   </div>
 
-  <!-- アプリ -->
   <div id="app" style="display:none;">
 
-    <!-- カレンダー画面 -->
+    <!-- カレンダー -->
     <div id="calendarView" class="card">
-      <div class="header">
+      <div class="calendar-header">
         <button onclick="prevMonth()">←</button>
         <h2 id="monthLabel"></h2>
         <button onclick="nextMonth()">→</button>
@@ -30,18 +32,18 @@
       <div id="calendar"></div>
     </div>
 
-    <!-- 日別画面 -->
+    <!-- 日別 -->
     <div id="dayView" class="card" style="display:none;">
       <button onclick="showView('calendarView')">←戻る</button>
       <h3 id="selectedDate"></h3>
-      <button onclick="openEditor()">＋投稿</button>
       <div id="dailyList"></div>
+      <button class="fab" onclick="openEditor()">＋</button>
     </div>
 
-    <!-- 投稿画面 -->
+    <!-- 投稿 -->
     <div id="editorView" class="card" style="display:none;">
       <button onclick="showView('dayView')">←戻る</button>
-      <h3>日記を書く</h3>
+      <h3 id="editorTitle">日記を書く</h3>
       <input id="title" placeholder="タイトル">
       <textarea id="content" placeholder="本文"></textarea>
       <button onclick="saveDiary()">保存</button>
