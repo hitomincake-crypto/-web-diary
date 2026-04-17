@@ -2,39 +2,57 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Web Diary</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <header class="header">
-  <h1>📅 Diary</h1>
+  <h1>📅 Web Diary</h1>
 </header>
 
 <div class="container">
 
+  <!-- ログイン -->
   <div id="loginArea" class="card">
+    <h2>ログイン</h2>
     <input id="email" placeholder="Email">
     <input id="password" type="password" placeholder="Password">
     <button onclick="login()">ログイン</button>
   </div>
 
+  <!-- ニックネーム設定 -->
   <div id="nicknameArea" class="card" style="display:none;">
+    <h2>ニックネーム設定</h2>
     <input id="nicknameInput" placeholder="ニックネーム">
     <button onclick="saveNickname()">保存</button>
   </div>
 
+  <!-- アプリ -->
   <div id="app" style="display:none;">
 
-    <div id="calendarView" class="card"></div>
-
-    <div id="dayView" class="card" style="display:none;">
-      <h3 id="selectedDate"></h3>
-      <div id="dailyList"></div>
+    <!-- カレンダー -->
+    <div id="calendarView" class="card">
+      <div class="calendar-header">
+        <button onclick="prevMonth()">←</button>
+        <h2 id="monthLabel"></h2>
+        <button onclick="nextMonth()">→</button>
+      </div>
+      <div id="calendar"></div>
     </div>
 
+    <!-- 日別 -->
+    <div id="dayView" class="card" style="display:none;">
+      <button onclick="showView('calendarView')">←戻る</button>
+      <h3 id="selectedDate"></h3>
+      <div id="dailyList"></div>
+      <button class="fab" onclick="openEditor()">＋</button>
+    </div>
+
+    <!-- 投稿 -->
     <div id="editorView" class="card" style="display:none;">
+      <button onclick="showView('dayView')">←戻る</button>
+      <h3 id="editorTitle">日記を書く</h3>
       <input id="title" placeholder="タイトル">
       <textarea id="content" placeholder="本文"></textarea>
       <button onclick="saveDiary()">保存</button>
@@ -42,15 +60,6 @@
 
   </div>
 
-</div>
-
-<!-- FAB -->
-<button class="fab" onclick="openEditor()">＋</button>
-
-<!-- 下ナビ -->
-<div class="bottom-nav">
-  <button onclick="showView('calendarView')">📅</button>
-  <button onclick="showView('dayView')">📖</button>
 </div>
 
 <script type="module" src="main.js"></script>
