@@ -20,48 +20,33 @@ let nickname = "";
 let editingId = null;
 let currentDate = new Date();
 
+// 🔥 追加：月キャッシュ
+const monthCache = {};
 
-// =============================
-// 日付変換
-// =============================
 function toDate(createdAt) {
   if (!createdAt) return null;
   if (createdAt.seconds) return new Date(createdAt.seconds * 1000);
-
   const d = new Date(createdAt);
   if (isNaN(d)) return null;
-
   return d;
 }
 
-// =============================
-// 日付キー
-// =============================
 function toDateKey(createdAt) {
   const d = toDate(createdAt);
   if (!d) return null;
-
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
 }
 
-// =============================
-// 時刻フォーマット
-// =============================
 function formatTime(createdAt) {
   const d = toDate(createdAt);
   if (!d) return "";
-
   return `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
 }
 
-
-// ログイン
 window.login = async () => {
   await signInWithEmailAndPassword(auth, email.value, password.value);
 };
 
-
-// ログイン後
 onAuthStateChanged(auth, async user => {
   if (!user) return;
 
@@ -78,8 +63,6 @@ onAuthStateChanged(auth, async user => {
   }
 });
 
-
-// ニックネーム
 window.saveNickname = async () => {
   const user = auth.currentUser;
 
@@ -97,7 +80,7 @@ window.saveNickname = async () => {
 
 
 // =============================
-// カレンダー
+// カレンダー（キャッシュ対応）
 // =============================
 async function renderCalendar(){
   const calendar = document.getElementById("calendar");
@@ -106,29 +89,41 @@ async function renderCalendar(){
   const y = currentDate.getFullYear();
   const m = currentDate.getMonth();
 
+  const key = `${y}-${String(m+1).padStart(2,"0")}`;
+
   monthLabel.textContent = `${y}年 ${m+1}月`;
 
-  // 🔥 月範囲取得
-  const start = new Date(y, m, 1);
-  const end = new Date(y, m + 1, 1);
+  let snap;
 
-  const q = query(
-    collection(db,"diaries"),
-    where("createdAt", ">=", start),
-    where("createdAt", "<", end)
-  );
+  // 🔥 キャッシュチェック
+  if (monthCache[key]) {
+    snap = monthCache[key];
+  } else {
+    const start = new Date(y, m, 1);
+    const end = new Date(y, m + 1, 1);
 
-  const snap = await getDocs(q);
+    const q = query(
+      collection(db,"diaries"),
+      where("createdAt", ">=", start),
+      where("createdAt", "<", end)
+    );
+
+    snap = await getDocs(q);
+
+    // 🔥 キャッシュ保存
+    monthCache[key] = snap;
+  }
+
   const map = {};
 
   snap.forEach(d=>{
     const data = d.data();
     if (data.isDeleted) return;
 
-    const key = toDateKey(data.createdAt);
-    if (!key) return;
+    const dateKey = toDateKey(data.createdAt);
+    if (!dateKey) return;
 
-    map[key] = true;
+    map[dateKey] = true;
   });
 
   const first = new Date(y,m,1).getDay();
@@ -158,8 +153,6 @@ async function renderCalendar(){
   }
 }
 
-
-// 月切替
 window.prevMonth = () => {
   currentDate.setMonth(currentDate.getMonth()-1);
   renderCalendar();
@@ -172,7 +165,7 @@ window.nextMonth = () => {
 
 
 // =============================
-// 日表示（※ここは仕様維持で全件のまま）
+// 日表示（そのまま）
 // =============================
 window.openDay = async (dateStr)=>{
   selectedDateStr = dateStr;
@@ -182,52 +175,54 @@ window.openDay = async (dateStr)=>{
   selectedDate.textContent = dateStr;
   dailyList.innerHTML = "";
 
-  const snap = await getDocs(collection(db,"diaries"));
+  const start = new Date(dateStr + "T00:00:00");
+  const end   = new Date(dateStr + "T23:59:59.999");
+
+  const q = query(
+    collection(db,"diaries"),
+    where("createdAt", ">=", start),
+    where("createdAt", "<=", end)
+  );
+
+  const snap = await getDocs(q);
 
   snap.forEach(d=>{
     const data = d.data();
     if (data.isDeleted) return;
 
-    const key = toDateKey(data.createdAt);
-    if (!key) return;
+    const div = document.createElement("div");
+    div.className = "diary-card";
 
-    if (key === dateStr){
-      const div = document.createElement("div");
-      div.className = "diary-card";
+    const nick = data.nickname || "";
+    const time = formatTime(data.createdAt);
+    const titleText = data.title || "(無題)";
+    const contentText = data.content || "";
 
-      const nick = data.nickname || "";
-      const time = formatTime(data.createdAt);
-      const titleText = data.title || "(無題)";
-      const contentText = data.content || "";
+    div.innerHTML = `
+      <div class="nickname">${nick}　${time}</div>
+      <h4>${titleText}</h4>
+      <p>${contentText}</p>
+      <div class="actions">
+        <button onclick="editDiary('${d.id}')">✏️</button>
+        <button onclick="deleteDiary('${d.id}')">🗑️</button>
+      </div>
+    `;
 
-      div.innerHTML = `
-        <div class="nickname">${nick}　${time}</div>
-        <h4>${titleText}</h4>
-        <p>${contentText}</p>
-        <div class="actions">
-          <button onclick="editDiary('${d.id}')">✏️</button>
-          <button onclick="deleteDiary('${d.id}')">🗑️</button>
-        </div>
-      `;
-
-      dailyList.appendChild(div);
-    }
+    dailyList.appendChild(div);
   });
 };
 
 
-// 編集（そのまま）
+// 編集
 window.editDiary = async (id)=>{
   editingId = id;
 
-  const snap = await getDocs(collection(db,"diaries"));
-  snap.forEach(d=>{
-    if(d.id === id){
-      const data = d.data();
-      title.value = data.title;
-      content.value = data.content;
-    }
-  });
+  const snap = await getDoc(doc(db,"diaries",id));
+  if (snap.exists()){
+    const data = snap.data();
+    title.value = data.title;
+    content.value = data.content;
+  }
 
   showView("editorView");
 };
@@ -258,7 +253,6 @@ window.saveDiary = async ()=>{
 };
 
 
-// 削除
 window.deleteDiary = async (id)=>{
   if(!confirm("削除しますか？")) return;
 
@@ -269,8 +263,6 @@ window.deleteDiary = async (id)=>{
   openDay(selectedDateStr);
 };
 
-
-// 画面切替
 window.showView = (id)=>{
   ["calendarView","dayView","editorView"].forEach(v=>{
     document.getElementById(v).style.display="none";
@@ -278,8 +270,6 @@ window.showView = (id)=>{
   document.getElementById(id).style.display="block";
 };
 
-
-// 投稿画面
 window.openEditor = ()=>{
   title.value="";
   content.value="";
