@@ -4,7 +4,8 @@ from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 import {
   getFirestore, collection, addDoc, doc,
-  setDoc, getDoc, getDocs, updateDoc
+  setDoc, getDoc, getDocs, updateDoc,
+  query, where
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 import { firebaseConfig } from "./firebaseConfig.js";
@@ -40,15 +41,11 @@ function toDateKey(createdAt) {
   const d = toDate(createdAt);
   if (!d) return null;
 
-  return `${d.getFullYear()}-${
-    String(d.getMonth()+1).padStart(2,"0")
-  }-${
-    String(d.getDate()).padStart(2,"0")
-  }`;
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
 }
 
 // =============================
-// 時刻フォーマット（追加）
+// 時刻フォーマット
 // =============================
 function formatTime(createdAt) {
   const d = toDate(createdAt);
@@ -111,7 +108,17 @@ async function renderCalendar(){
 
   monthLabel.textContent = `${y}年 ${m+1}月`;
 
-  const snap = await getDocs(collection(db,"diaries"));
+  // 🔥 月範囲取得
+  const start = new Date(y, m, 1);
+  const end = new Date(y, m + 1, 1);
+
+  const q = query(
+    collection(db,"diaries"),
+    where("createdAt", ">=", start),
+    where("createdAt", "<", end)
+  );
+
+  const snap = await getDocs(q);
   const map = {};
 
   snap.forEach(d=>{
@@ -139,7 +146,6 @@ async function renderCalendar(){
 
     if (map[ds]) cell.classList.add("has-post");
 
-    // 🔥 黒枠に変更
     const todayKey = toDateKey(new Date());
     if (ds === todayKey) {
       cell.style.border = "2px solid black";
@@ -166,7 +172,7 @@ window.nextMonth = () => {
 
 
 // =============================
-// 日表示
+// 日表示（※ここは仕様維持で全件のまま）
 // =============================
 window.openDay = async (dateStr)=>{
   selectedDateStr = dateStr;
@@ -189,10 +195,15 @@ window.openDay = async (dateStr)=>{
       const div = document.createElement("div");
       div.className = "diary-card";
 
+      const nick = data.nickname || "";
+      const time = formatTime(data.createdAt);
+      const titleText = data.title || "(無題)";
+      const contentText = data.content || "";
+
       div.innerHTML = `
-        <div class="nickname">${data.nickname || ""}　${formatTime(data.createdAt)}</div>
-        <h4>${data.title || "(無題)"}</h4>
-        <p>${data.content}</p>
+        <div class="nickname">${nick}　${time}</div>
+        <h4>${titleText}</h4>
+        <p>${contentText}</p>
         <div class="actions">
           <button onclick="editDiary('${d.id}')">✏️</button>
           <button onclick="deleteDiary('${d.id}')">🗑️</button>
@@ -205,7 +216,7 @@ window.openDay = async (dateStr)=>{
 };
 
 
-// 編集
+// 編集（そのまま）
 window.editDiary = async (id)=>{
   editingId = id;
 
