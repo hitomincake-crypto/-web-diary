@@ -9,21 +9,54 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 import { firebaseConfig } from "./firebaseConfig.js";
+import { githubConfig } from "./githubConfig.js";
 
 initializeApp(firebaseConfig);
 
 const auth = getAuth();
 const db = getFirestore();
 
-// 🔥 デプロイ時刻（秒まで）
-const DEPLOY_TIME = "2026-04-20 01:30:45";
+// =============================
+// 🔥 GitHub 最終更新取得
+// =============================
+async function setDeployInfoFromGitHub() {
+  const el = document.getElementById("deployInfo");
+  if (!el) return;
 
-const deployInfoEl = document.getElementById("deployInfo");
-if (deployInfoEl) {
-  deployInfoEl.textContent = "最終更新: " + DEPLOY_TIME;
+  try {
+    const res = await fetch(`https://api.github.com/repos/${githubConfig.owner}/${githubConfig.repo}/commits`);
+    const data = await res.json();
+
+    if (!data || !data[0]) {
+      el.textContent = "最終更新: 取得失敗";
+      return;
+    }
+
+    const iso = data[0].commit.committer.date;
+    const d = new Date(iso);
+
+    const formatted =
+      d.getFullYear() + "-" +
+      String(d.getMonth()+1).padStart(2,"0") + "-" +
+      String(d.getDate()).padStart(2,"0") + " " +
+      String(d.getHours()).padStart(2,"0") + ":" +
+      String(d.getMinutes()).padStart(2,"0") + ":" +
+      String(d.getSeconds()).padStart(2,"0");
+
+    el.textContent = "最終更新: " + formatted;
+
+  } catch (e) {
+    el.textContent = "最終更新: 取得エラー";
+    console.error(e);
+  }
 }
 
+document.addEventListener("DOMContentLoaded", setDeployInfoFromGitHub);
 
+
+// =============================
+// 既存ロジック（変更なし）
+// =============================
 
 let selectedDateStr = "";
 let nickname = "";
