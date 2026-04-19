@@ -23,13 +23,7 @@ if (deployInfoEl) {
   deployInfoEl.textContent = "最終更新: " + DEPLOY_TIME;
 }
 
-// 🔥 追加：常に表示（ここが修正ポイント）
-document.addEventListener("DOMContentLoaded", () => {
-  const el = document.getElementById("deployInfo");
-  if (el) {
-    el.textContent = "最終更新: " + DEPLOY_TIME;
-  }
-});
+
 
 let selectedDateStr = "";
 let nickname = "";
