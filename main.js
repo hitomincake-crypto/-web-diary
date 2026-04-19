@@ -18,12 +18,24 @@ const db = getFirestore();
 // 🔥 デプロイ時刻（秒まで）
 const DEPLOY_TIME = "2026-04-20 01:30:45";
 
+const deployInfoEl = document.getElementById("deployInfo");
+if (deployInfoEl) {
+  deployInfoEl.textContent = "最終更新: " + DEPLOY_TIME;
+}
+
+// 🔥 追加：常に表示（ここが修正ポイント）
+document.addEventListener("DOMContentLoaded", () => {
+  const el = document.getElementById("deployInfo");
+  if (el) {
+    el.textContent = "最終更新: " + DEPLOY_TIME;
+  }
+});
+
 let selectedDateStr = "";
 let nickname = "";
 let editingId = null;
 let currentDate = new Date();
 
-// 月キャッシュ
 const monthCache = {};
 
 function toDate(createdAt) {
@@ -64,9 +76,6 @@ onAuthStateChanged(auth, async user => {
     app.style.display = "block";
     renderCalendar();
   }
-
-  // 🔥 表示
-  deployInfo.textContent = "最終更新: " + DEPLOY_TIME;
 });
 
 window.saveNickname = async () => {
