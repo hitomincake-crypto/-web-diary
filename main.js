@@ -15,12 +15,15 @@ initializeApp(firebaseConfig);
 const auth = getAuth();
 const db = getFirestore();
 
+// 🔥 デプロイ時刻（秒まで）
+const DEPLOY_TIME = "2026-04-20 01:30:45";
+
 let selectedDateStr = "";
 let nickname = "";
 let editingId = null;
 let currentDate = new Date();
 
-// 🔥 追加：月キャッシュ
+// 月キャッシュ
 const monthCache = {};
 
 function toDate(createdAt) {
@@ -61,6 +64,9 @@ onAuthStateChanged(auth, async user => {
     app.style.display = "block";
     renderCalendar();
   }
+
+  // 🔥 表示
+  deployInfo.textContent = "最終更新: " + DEPLOY_TIME;
 });
 
 window.saveNickname = async () => {
@@ -80,7 +86,7 @@ window.saveNickname = async () => {
 
 
 // =============================
-// カレンダー（キャッシュ対応）
+// カレンダー
 // =============================
 async function renderCalendar(){
   const calendar = document.getElementById("calendar");
@@ -95,7 +101,6 @@ async function renderCalendar(){
 
   let snap;
 
-  // 🔥 キャッシュチェック
   if (monthCache[key]) {
     snap = monthCache[key];
   } else {
@@ -109,8 +114,6 @@ async function renderCalendar(){
     );
 
     snap = await getDocs(q);
-
-    // 🔥 キャッシュ保存
     monthCache[key] = snap;
   }
 
@@ -165,7 +168,7 @@ window.nextMonth = () => {
 
 
 // =============================
-// 日表示（そのまま）
+// 日表示
 // =============================
 window.openDay = async (dateStr)=>{
   selectedDateStr = dateStr;
@@ -253,6 +256,7 @@ window.saveDiary = async ()=>{
 };
 
 
+// 削除
 window.deleteDiary = async (id)=>{
   if(!confirm("削除しますか？")) return;
 
@@ -263,6 +267,8 @@ window.deleteDiary = async (id)=>{
   openDay(selectedDateStr);
 };
 
+
+// 画面切替
 window.showView = (id)=>{
   ["calendarView","dayView","editorView"].forEach(v=>{
     document.getElementById(v).style.display="none";
@@ -270,6 +276,8 @@ window.showView = (id)=>{
   document.getElementById(id).style.display="block";
 };
 
+
+// 投稿画面
 window.openEditor = ()=>{
   title.value="";
   content.value="";
