@@ -269,7 +269,7 @@ window.editDiary = async (id)=>{
 
 // 保存
 window.saveDiary = async ()=>{
-  const date = new Date(selectedDateStr + "T12:00:00");
+  const date = new Date();
 
   const data = {
     userId: auth.currentUser.uid,
