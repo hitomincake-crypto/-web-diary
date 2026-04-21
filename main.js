@@ -4,90 +4,43 @@ from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 import {
   getFirestore, collection, addDoc, doc,
-  setDoc, getDoc, getDocs, updateDoc,
-  query, where
+  setDoc, getDoc, updateDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 import { firebaseConfig } from "./firebaseConfig.js";
 import { githubConfig } from "./githubConfig.js";
+
+import {
+  toDate, toDateKey, formatTime,
+  getDayRange, getMonthRange
+} from "./utils.js";
+
+import { setDeployInfo } from "./github.js";
+import { diaryItemTemplate } from "./template.js";
+
+// 🔥 追加（Firestore分離）
+import {
+  fetchDiariesByMonth,
+  fetchDiariesByDay
+} from "./firestore.js";
 
 initializeApp(firebaseConfig);
 
 const auth = getAuth();
 const db = getFirestore();
 
-// =============================
-// GitHub 最終更新取得（変更なし）
-// =============================
-async function setDeployInfoFromGitHub() {
-  const el = document.getElementById("deployInfo");
-  if (!el) return;
+document.addEventListener("DOMContentLoaded", () => {
+  setDeployInfo(githubConfig.owner, githubConfig.repo);
+});
 
-  try {
-    const res = await fetch(`https://api.github.com/repos/${githubConfig.owner}/${githubConfig.repo}/commits`);
-    const data = await res.json();
-
-    if (!data || !data[0]) {
-      el.textContent = "最終更新: 取得失敗";
-      return;
-    }
-
-    const iso = data[0].commit.committer.date;
-    const d = new Date(iso);
-
-    const formatted =
-      d.getFullYear() + "-" +
-      String(d.getMonth()+1).padStart(2,"0") + "-" +
-      String(d.getDate()).padStart(2,"0") + " " +
-      String(d.getHours()).padStart(2,"0") + ":" +
-      String(d.getMinutes()).padStart(2,"0") + ":" +
-      String(d.getSeconds()).padStart(2,"0");
-
-    el.textContent = "最終更新: " + formatted;
-
-  } catch (e) {
-    el.textContent = "最終更新: 取得エラー";
-    console.error(e);
-  }
-}
-
-document.addEventListener("DOMContentLoaded", setDeployInfoFromGitHub);
-
-// =============================
-// 状態
-// =============================
 let selectedDateStr = "";
 let nickname = "";
 let editingId = null;
 let currentDate = new Date();
-
 const monthCache = {};
 
 // =============================
-// ユーティリティ
-// =============================
-function toDate(createdAt) {
-  if (!createdAt) return null;
-  if (createdAt.seconds) return new Date(createdAt.seconds * 1000);
-  const d = new Date(createdAt);
-  if (isNaN(d)) return null;
-  return d;
-}
-
-function toDateKey(createdAt) {
-  const d = toDate(createdAt);
-  if (!d) return null;
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
-}
-
-function formatTime(createdAt) {
-  const d = toDate(createdAt);
-  if (!d) return "";
-  return `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
-}
-
-// =============================
-// ログイン
+// ログイン（変更なし）
 // =============================
 window.login = async () => {
   await signInWithEmailAndPassword(auth, email.value, password.value);
@@ -125,7 +78,7 @@ window.saveNickname = async () => {
 };
 
 // =============================
-// カレンダー（変更なし）
+// カレンダー
 // =============================
 async function renderCalendar(){
   const calendar = document.getElementById("calendar");
@@ -143,16 +96,12 @@ async function renderCalendar(){
   if (monthCache[key]) {
     snap = monthCache[key];
   } else {
-    const start = new Date(y, m, 1);
-    const end = new Date(y, m + 1, 1);
 
-    const q = query(
-      collection(db,"diaries"),
-      where("createdAt", ">=", start),
-      where("createdAt", "<", end)
-    );
+    const { start, end } = getMonthRange(y, m);
 
-    snap = await getDocs(q);
+    // 🔥 変更：Firestore関数使用
+    snap = await fetchDiariesByMonth(db, start, end);
+
     monthCache[key] = snap;
   }
 
@@ -196,7 +145,7 @@ async function renderCalendar(){
 }
 
 // =============================
-// 日表示（ここだけ変更）
+// 日表示
 // =============================
 window.openDay = async (dateStr)=>{
   selectedDateStr = dateStr;
@@ -206,16 +155,10 @@ window.openDay = async (dateStr)=>{
   selectedDate.textContent = dateStr;
   dailyList.innerHTML = "";
 
-  const start = new Date(dateStr + "T00:00:00");
-  const end   = new Date(dateStr + "T23:59:59.999");
+  const { start, end } = getDayRange(dateStr);
 
-  const q = query(
-    collection(db,"diaries"),
-    where("createdAt", ">=", start),
-    where("createdAt", "<=", end)
-  );
-
-  const snap = await getDocs(q);
+  // 🔥 変更：Firestore関数使用
+  const snap = await fetchDiariesByDay(db, start, end);
 
   snap.forEach(d=>{
     const data = d.data();
@@ -224,26 +167,14 @@ window.openDay = async (dateStr)=>{
     const div = document.createElement("div");
     div.className = "diary-card";
 
-    const nick = data.nickname || "";
-    const time = formatTime(data.createdAt);
-    const titleText = data.title || "(無題)";
-
-    div.innerHTML = `
-      <div class="nickname">${nick}　${time}</div>
-      <h4>${titleText}</h4>
-      <div class="actions">
-        <button onclick="viewDiary('${d.id}')">閲覧</button>
-        <button onclick="editDiary('${d.id}')">編集</button>
-        <button onclick="deleteDiary('${d.id}')">削除</button>
-      </div>
-    `;
+    div.innerHTML = diaryItemTemplate(d, data, formatTime);
 
     dailyList.appendChild(div);
   });
 };
 
 // =============================
-// 閲覧（追加）
+// 以下完全変更なし
 // =============================
 window.viewDiary = async (id) => {
   const snap = await getDoc(doc(db, "diaries", id));
@@ -263,9 +194,6 @@ window.viewDiary = async (id) => {
   showView("viewDiaryView");
 };
 
-// =============================
-// 以下は変更なし
-// =============================
 window.editDiary = async (id)=>{
   editingId = id;
 
