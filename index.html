@@ -58,11 +58,19 @@
       <button onclick="saveDiary()">保存</button>
     </div>
 
+    <!-- 閲覧画面（追加） -->
+    <div id="viewDiaryView" class="card" style="display:none;">
+      <button onclick="showView('dayView')">←戻る</button>
+      <h3 id="viewTitle"></h3>
+      <div id="viewMeta" class="nickname"></div>
+      <p id="viewContent" style="white-space:pre-wrap;"></p>
+    </div>
+
   </div>
 
 </div>
 
-<!-- 🔥 追加：最終更新表示（UI影響なし・最下部） -->
+<!-- 最終更新表示 -->
 <div id="deployInfo" style="text-align:center; font-size:12px; color:#888; margin:10px 0;"></div>
 
 <script type="module" src="main.js"></script>

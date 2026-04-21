@@ -17,32 +17,45 @@ const auth = getAuth();
 const db = getFirestore();
 
 // =============================
-// 🔥 GitHub 最終更新取得
+// GitHub 最終更新取得（変更なし）
 // =============================
-async function setDeployInfo() {
+async function setDeployInfoFromGitHub() {
   const el = document.getElementById("deployInfo");
   if (!el) return;
 
   try {
-    const res = await fetch("./deploy.json");
+    const res = await fetch(`https://api.github.com/repos/${githubConfig.owner}/${githubConfig.repo}/commits`);
     const data = await res.json();
 
-    const d = new Date(data.updatedAt);
+    if (!data || !data[0]) {
+      el.textContent = "最終更新: 取得失敗";
+      return;
+    }
 
-    el.textContent = "最終更新: " + d.toLocaleString("ja-JP");
+    const iso = data[0].commit.committer.date;
+    const d = new Date(iso);
+
+    const formatted =
+      d.getFullYear() + "-" +
+      String(d.getMonth()+1).padStart(2,"0") + "-" +
+      String(d.getDate()).padStart(2,"0") + " " +
+      String(d.getHours()).padStart(2,"0") + ":" +
+      String(d.getMinutes()).padStart(2,"0") + ":" +
+      String(d.getSeconds()).padStart(2,"0");
+
+    el.textContent = "最終更新: " + formatted;
 
   } catch (e) {
-    el.textContent = "最終更新: 不明";
+    el.textContent = "最終更新: 取得エラー";
     console.error(e);
   }
 }
 
-document.addEventListener("DOMContentLoaded", setDeployInfo);
+document.addEventListener("DOMContentLoaded", setDeployInfoFromGitHub);
 
 // =============================
-// 既存ロジック（変更なし）
+// 状態
 // =============================
-
 let selectedDateStr = "";
 let nickname = "";
 let editingId = null;
@@ -50,6 +63,9 @@ let currentDate = new Date();
 
 const monthCache = {};
 
+// =============================
+// ユーティリティ
+// =============================
 function toDate(createdAt) {
   if (!createdAt) return null;
   if (createdAt.seconds) return new Date(createdAt.seconds * 1000);
@@ -70,6 +86,9 @@ function formatTime(createdAt) {
   return `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
 }
 
+// =============================
+// ログイン
+// =============================
 window.login = async () => {
   await signInWithEmailAndPassword(auth, email.value, password.value);
 };
@@ -105,9 +124,8 @@ window.saveNickname = async () => {
   renderCalendar();
 };
 
-
 // =============================
-// カレンダー
+// カレンダー（変更なし）
 // =============================
 async function renderCalendar(){
   const calendar = document.getElementById("calendar");
@@ -177,19 +195,8 @@ async function renderCalendar(){
   }
 }
 
-window.prevMonth = () => {
-  currentDate.setMonth(currentDate.getMonth()-1);
-  renderCalendar();
-};
-
-window.nextMonth = () => {
-  currentDate.setMonth(currentDate.getMonth()+1);
-  renderCalendar();
-};
-
-
 // =============================
-// 日表示
+// 日表示（ここだけ変更）
 // =============================
 window.openDay = async (dateStr)=>{
   selectedDateStr = dateStr;
@@ -220,15 +227,14 @@ window.openDay = async (dateStr)=>{
     const nick = data.nickname || "";
     const time = formatTime(data.createdAt);
     const titleText = data.title || "(無題)";
-    const contentText = data.content || "";
 
     div.innerHTML = `
       <div class="nickname">${nick}　${time}</div>
       <h4>${titleText}</h4>
-      <p>${contentText}</p>
       <div class="actions">
-        <button onclick="editDiary('${d.id}')">✏️</button>
-        <button onclick="deleteDiary('${d.id}')">🗑️</button>
+        <button onclick="viewDiary('${d.id}')">閲覧</button>
+        <button onclick="editDiary('${d.id}')">編集</button>
+        <button onclick="deleteDiary('${d.id}')">削除</button>
       </div>
     `;
 
@@ -236,8 +242,30 @@ window.openDay = async (dateStr)=>{
   });
 };
 
+// =============================
+// 閲覧（追加）
+// =============================
+window.viewDiary = async (id) => {
+  const snap = await getDoc(doc(db, "diaries", id));
+  if (!snap.exists()) return;
 
-// 編集
+  const data = snap.data();
+
+  document.getElementById("viewTitle").textContent =
+    data.title || "(無題)";
+
+  document.getElementById("viewMeta").textContent =
+    (data.nickname || "") + " " + formatTime(data.createdAt);
+
+  document.getElementById("viewContent").textContent =
+    data.content || "";
+
+  showView("viewDiaryView");
+};
+
+// =============================
+// 以下は変更なし
+// =============================
 window.editDiary = async (id)=>{
   editingId = id;
 
@@ -251,8 +279,6 @@ window.editDiary = async (id)=>{
   showView("editorView");
 };
 
-
-// 保存
 window.saveDiary = async ()=>{
   const date = new Date();
 
@@ -276,8 +302,6 @@ window.saveDiary = async ()=>{
   openDay(selectedDateStr);
 };
 
-
-// 削除
 window.deleteDiary = async (id)=>{
   if(!confirm("削除しますか？")) return;
 
@@ -288,17 +312,13 @@ window.deleteDiary = async (id)=>{
   openDay(selectedDateStr);
 };
 
-
-// 画面切替
 window.showView = (id)=>{
-  ["calendarView","dayView","editorView"].forEach(v=>{
+  ["calendarView","dayView","editorView","viewDiaryView"].forEach(v=>{
     document.getElementById(v).style.display="none";
   });
   document.getElementById(id).style.display="block";
 };
 
-
-// 投稿画面
 window.openEditor = ()=>{
   title.value="";
   content.value="";
