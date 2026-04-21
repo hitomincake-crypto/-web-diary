@@ -19,40 +19,25 @@ const db = getFirestore();
 // =============================
 // 🔥 GitHub 最終更新取得
 // =============================
-async function setDeployInfoFromGitHub() {
+async function setDeployInfo() {
   const el = document.getElementById("deployInfo");
   if (!el) return;
 
   try {
-    const res = await fetch(`https://api.github.com/repos/${githubConfig.owner}/${githubConfig.repo}/commits`);
+    const res = await fetch("./deploy.json");
     const data = await res.json();
 
-    if (!data || !data[0]) {
-      el.textContent = "最終更新: 取得失敗";
-      return;
-    }
+    const d = new Date(data.updatedAt);
 
-    const iso = data[0].commit.committer.date;
-    const d = new Date(iso);
-
-    const formatted =
-      d.getFullYear() + "-" +
-      String(d.getMonth()+1).padStart(2,"0") + "-" +
-      String(d.getDate()).padStart(2,"0") + " " +
-      String(d.getHours()).padStart(2,"0") + ":" +
-      String(d.getMinutes()).padStart(2,"0") + ":" +
-      String(d.getSeconds()).padStart(2,"0");
-
-    el.textContent = "最終更新: " + formatted;
+    el.textContent = "最終更新: " + d.toLocaleString("ja-JP");
 
   } catch (e) {
-    el.textContent = "最終更新: 取得エラー";
+    el.textContent = "最終更新: 不明";
     console.error(e);
   }
 }
 
-document.addEventListener("DOMContentLoaded", setDeployInfoFromGitHub);
-
+document.addEventListener("DOMContentLoaded", setDeployInfo);
 
 // =============================
 // 既存ロジック（変更なし）
