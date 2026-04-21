@@ -18,7 +18,6 @@ import {
 import { setDeployInfo } from "./github.js";
 import { diaryItemTemplate } from "./template.js";
 
-// 🔥 追加（Firestore分離）
 import {
   fetchDiariesByMonth,
   fetchDiariesByDay
@@ -40,7 +39,7 @@ let currentDate = new Date();
 const monthCache = {};
 
 // =============================
-// ログイン（変更なし）
+// ログイン
 // =============================
 window.login = async () => {
   await signInWithEmailAndPassword(auth, email.value, password.value);
@@ -99,7 +98,6 @@ async function renderCalendar(){
 
     const { start, end } = getMonthRange(y, m);
 
-    // 🔥 変更：Firestore関数使用
     snap = await fetchDiariesByMonth(db, start, end);
 
     monthCache[key] = snap;
@@ -144,6 +142,17 @@ async function renderCalendar(){
   }
 }
 
+// 🔥 ここが今回の修正
+window.prevMonth = () => {
+  currentDate.setMonth(currentDate.getMonth()-1);
+  renderCalendar();
+};
+
+window.nextMonth = () => {
+  currentDate.setMonth(currentDate.getMonth()+1);
+  renderCalendar();
+};
+
 // =============================
 // 日表示
 // =============================
@@ -157,7 +166,6 @@ window.openDay = async (dateStr)=>{
 
   const { start, end } = getDayRange(dateStr);
 
-  // 🔥 変更：Firestore関数使用
   const snap = await fetchDiariesByDay(db, start, end);
 
   snap.forEach(d=>{
@@ -174,7 +182,7 @@ window.openDay = async (dateStr)=>{
 };
 
 // =============================
-// 以下完全変更なし
+// 閲覧
 // =============================
 window.viewDiary = async (id) => {
   const snap = await getDoc(doc(db, "diaries", id));
@@ -194,6 +202,9 @@ window.viewDiary = async (id) => {
   showView("viewDiaryView");
 };
 
+// =============================
+// 編集
+// =============================
 window.editDiary = async (id)=>{
   editingId = id;
 
@@ -207,6 +218,9 @@ window.editDiary = async (id)=>{
   showView("editorView");
 };
 
+// =============================
+// 保存
+// =============================
 window.saveDiary = async ()=>{
   const date = new Date();
 
@@ -230,6 +244,9 @@ window.saveDiary = async ()=>{
   openDay(selectedDateStr);
 };
 
+// =============================
+// 削除
+// =============================
 window.deleteDiary = async (id)=>{
   if(!confirm("削除しますか？")) return;
 
@@ -240,6 +257,9 @@ window.deleteDiary = async (id)=>{
   openDay(selectedDateStr);
 };
 
+// =============================
+// 画面切替
+// =============================
 window.showView = (id)=>{
   ["calendarView","dayView","editorView","viewDiaryView"].forEach(v=>{
     document.getElementById(v).style.display="none";
@@ -247,6 +267,9 @@ window.showView = (id)=>{
   document.getElementById(id).style.display="block";
 };
 
+// =============================
+// 投稿画面
+// =============================
 window.openEditor = ()=>{
   title.value="";
   content.value="";
