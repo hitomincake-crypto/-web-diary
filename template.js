@@ -9,6 +9,7 @@ export function diaryItemTemplate(d, data, formatTime) {
     <div class="actions">
       <button onclick="viewDiary('${d.id}')">閲覧</button>
       <button onclick="editDiary('${d.id}')">編集</button>
+      <button onclick="commentDiary('${d.id}')">コメント</button>
       <button onclick="deleteDiary('${d.id}')">削除</button>
     </div>
   `;

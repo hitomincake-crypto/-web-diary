@@ -32,11 +32,13 @@ document.addEventListener("DOMContentLoaded", () => {
   setDeployInfo(githubConfig.owner, githubConfig.repo);
 });
 
+// =============================
 let selectedDateStr = "";
 let nickname = "";
 let editingId = null;
 let currentDate = new Date();
 const monthCache = {};
+// =============================
 
 // =============================
 // ログイン
@@ -95,15 +97,13 @@ async function renderCalendar(){
   if (monthCache[key]) {
     snap = monthCache[key];
   } else {
-
     const { start, end } = getMonthRange(y, m);
-
     snap = await fetchDiariesByMonth(db, start, end);
-
     monthCache[key] = snap;
   }
 
   const map = {};
+  const commentMap = {};
 
   snap.forEach(d=>{
     const data = d.data();
@@ -113,6 +113,10 @@ async function renderCalendar(){
     if (!dateKey) return;
 
     map[dateKey] = true;
+
+    if (data.comment) {
+      commentMap[dateKey] = true;
+    }
   });
 
   const first = new Date(y,m,1).getDay();
@@ -130,6 +134,10 @@ async function renderCalendar(){
 
     if (map[ds]) cell.classList.add("has-post");
 
+    if (commentMap[ds]) {
+      cell.style.textDecoration = "underline";
+    }
+
     const todayKey = toDateKey(new Date());
     if (ds === todayKey) {
       cell.style.border = "2px solid black";
@@ -142,7 +150,7 @@ async function renderCalendar(){
   }
 }
 
-// 🔥 ここが今回の修正
+// 🔥 必須（ボタン動作）
 window.prevMonth = () => {
   currentDate.setMonth(currentDate.getMonth()-1);
   renderCalendar();
@@ -182,6 +190,24 @@ window.openDay = async (dateStr)=>{
 };
 
 // =============================
+// コメント編集（追加）
+// =============================
+window.commentDiary = async (id)=>{
+  editingId = id;
+
+  const snap = await getDoc(doc(db,"diaries",id));
+  if (snap.exists()){
+    const data = snap.data();
+
+    title.value = data.title || "";
+    content.value = data.content || "";
+    comment.value = data.comment || "";
+  }
+
+  showView("editorView");
+};
+
+// =============================
 // 閲覧
 // =============================
 window.viewDiary = async (id) => {
@@ -199,6 +225,9 @@ window.viewDiary = async (id) => {
   document.getElementById("viewContent").textContent =
     data.content || "";
 
+  document.getElementById("viewComment").textContent =
+    data.comment || "";
+
   showView("viewDiaryView");
 };
 
@@ -213,31 +242,49 @@ window.editDiary = async (id)=>{
     const data = snap.data();
     title.value = data.title;
     content.value = data.content;
+    comment.value = data.comment || "";
   }
 
   showView("editorView");
 };
 
 // =============================
-// 保存
+// 保存（コメント対応）
 // =============================
 window.saveDiary = async ()=>{
   const date = new Date();
 
-  const data = {
-    userId: auth.currentUser.uid,
-    nickname: nickname,
-    title: title.value,
-    content: content.value,
-    createdAt: date,
-    isDeleted: false
-  };
-
   if(editingId){
-    await updateDoc(doc(db,"diaries",editingId), data);
+
+    // 🔥 既存データ取得
+    const snap = await getDoc(doc(db,"diaries",editingId));
+    if (!snap.exists()) return;
+
+    const old = snap.data();
+
+    // 🔥 必要なものだけ更新
+    await updateDoc(doc(db,"diaries",editingId),{
+      title: title.value,
+      content: content.value,
+      comment: comment.value || "",
+      commentUpdatedAt: new Date()
+    });
+
     editingId = null;
+
   } else {
-    await addDoc(collection(db,"diaries"), data);
+
+    // 新規作成はそのまま
+    await addDoc(collection(db,"diaries"),{
+      userId: auth.currentUser.uid,
+      nickname: nickname,
+      title: title.value,
+      content: content.value,
+      comment: comment.value || "",
+      commentUpdatedAt: new Date(),
+      createdAt: date,
+      isDeleted: false
+    });
   }
 
   showView("dayView");
@@ -273,6 +320,7 @@ window.showView = (id)=>{
 window.openEditor = ()=>{
   title.value="";
   content.value="";
+  comment.value="";
   editingId=null;
   showView("editorView");
 };
