@@ -3,7 +3,7 @@ import { diaryItemTemplateMobile } from "./template-mobile.js";
 
 // 画面サイズ判定
 function isMobile() {
-  return window.innerWidth <= 768;
+  return window.innerWidth <= 1020;
 }
 
 // 🔥 既存関数をそのまま使う（これが重要）
