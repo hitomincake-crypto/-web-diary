@@ -66,3 +66,47 @@ textarea {
   height: 500px;   /* ← 好きな高さに調整可能（例：400pxでもOK） */
   resize: vertical; /* ユーザーがさらに拡大できる */
 }
+
+/* =========================
+   スマホ最適化（追加のみ）
+   ========================= */
+@media (max-width: 768px) {
+
+  .container {
+    max-width: 100%;
+    padding: 8px;
+  }
+
+  .card {
+    padding: 12px;
+    margin-top: 8px;
+  }
+
+  #calendar {
+    gap: 4px;
+  }
+
+  .day {
+    padding: 14px 0;
+    font-size: 16px;
+  }
+
+  button {
+    width: 100%;
+  }
+
+  input, textarea {
+    font-size: 16px;
+  }
+
+  textarea {
+    height: 300px;
+  }
+
+  .fab {
+    width: 60px;
+    height: 60px;
+    bottom: 16px;
+    right: 16px;
+  }
+}
