@@ -24,6 +24,7 @@ import {
 } from "./firestore.js";
 
 import { linkify } from "./utils.js";
+import { linkifyWithTitle } from "./utils.js";
 
 initializeApp(firebaseConfig);
 
@@ -225,7 +226,7 @@ window.viewDiary = async (id) => {
     (data.nickname || "") + " " + formatTime(data.createdAt);
 
   document.getElementById("viewContent").innerHTML =
-  linkify(data.content || "");
+  await linkifyWithTitle(data.content || "");
 
   document.getElementById("viewComment").textContent =
     data.comment || "";

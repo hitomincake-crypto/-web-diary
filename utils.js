@@ -45,3 +45,36 @@ export function linkify(text) {
     .replace(/>/g, "&gt;")
     .replace(urlRegex, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
 }
+
+export async function linkifyWithTitle(text) {
+if (!text) return "";
+
+const urlRegex = /(https?:\/\/[^\s]+)/g;
+const urls = text.match(urlRegex);
+
+if (!urls) {
+return text.replace(/\n/g, "<br>");
+}
+
+let result = text;
+
+for (const url of urls) {
+try {
+const res = await fetch(`https://api.microlink.io?url=${encodeURIComponent(url)}`);
+const data = await res.json();
+
+  const title = data?.data?.title || url;
+
+  const link = `<a href="${url}" target="_blank" rel="noopener noreferrer">${title}</a>`;
+  result = result.replace(url, link);
+
+} catch {
+  const fallback = `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
+  result = result.replace(url, fallback);
+}
+
+
+}
+
+return result.replace(/\n/g, "<br>");
+}
