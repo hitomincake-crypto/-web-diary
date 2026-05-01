@@ -23,6 +23,8 @@ import {
   fetchDiariesByDay
 } from "./firestore.js";
 
+import { linkify } from "./utils.js";
+
 initializeApp(firebaseConfig);
 
 const auth = getAuth();
@@ -222,8 +224,8 @@ window.viewDiary = async (id) => {
   document.getElementById("viewMeta").textContent =
     (data.nickname || "") + " " + formatTime(data.createdAt);
 
-  document.getElementById("viewContent").textContent =
-    data.content || "";
+  document.getElementById("viewContent").innerHTML =
+  linkify(data.content || "");
 
   document.getElementById("viewComment").textContent =
     data.comment || "";

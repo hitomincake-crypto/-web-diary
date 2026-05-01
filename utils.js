@@ -33,3 +33,15 @@ export function getMonthRange(y, m) {
     end: new Date(y, m + 1, 1)
   };
 }
+
+export function linkify(text) {
+  if (!text) return "";
+
+  // URLをリンク化
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+
+  return text
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(urlRegex, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
+}
