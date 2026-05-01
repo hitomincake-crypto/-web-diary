@@ -1,0 +1,147 @@
+body { margin:0; font-family:sans-serif; background:#f1f3f4; }
+
+.header {
+background:#1a73e8;
+color:white;
+padding:14px;
+text-align:center;
+}
+
+.container { max-width:700px; margin:auto; padding:10px; }
+
+.card {
+background:white;
+padding:16px;
+margin-top:10px;
+border-radius:10px;
+}
+
+.calendar-header { display:flex; justify-content:space-between; }
+
+#calendar {
+display:grid;
+grid-template-columns:repeat(7,1fr);
+gap:8px;
+}
+
+.day {
+padding:12px;
+text-align:center;
+border-radius:8px;
+cursor:pointer;
+}
+
+.day.has-post { background:#cfe2ff; }
+
+button {
+margin-top:8px;
+padding:8px;
+background:#1a73e8;
+color:white;
+border:none;
+border-radius:6px;
+}
+
+.fab {
+position:fixed;
+bottom:20px;
+right:20px;
+width:55px;
+height:55px;
+border-radius:50%;
+}
+
+.diary-card {
+border-bottom:1px solid #eee;
+padding:8px 0;
+}
+
+.nickname {
+font-size:12px;
+color:#666;
+}
+
+textarea {
+width: 100%;
+height: 500px;
+resize: vertical;
+}
+
+/* =========================
+スマホ最適化
+========================= */
+@media (max-width: 768px) {
+
+/* レイアウト */
+.container {
+max-width: 100%;
+padding: 8px;
+}
+
+.card {
+padding: 12px;
+margin-top: 8px;
+}
+
+/* カレンダー */
+#calendar {
+gap: 4px;
+}
+
+.day {
+padding: 14px 0;
+font-size: 16px;
+}
+
+/* 入力系 */
+input, textarea {
+font-size: 16px;
+}
+
+textarea {
+height: 300px;
+}
+
+/* FAB */
+.fab {
+width: 60px;
+height: 60px;
+bottom: 16px;
+right: 16px;
+}
+
+/* ===== カレンダーの月変更ボタン ===== */
+.calendar-header button {
+width: auto;
+padding: 6px 10px;
+font-size: 14px;
+}
+
+/* ===== 日別画面ボタン（戻る以外） ===== */
+#dayView button {
+width: auto;
+padding: 6px 10px;
+font-size: 14px;
+}
+
+/* 戻るボタンはそのまま */
+#dayView button:first-child {
+width: 100%;
+padding: 8px;
+font-size: 16px;
+}
+
+/* ===== 日記カード内ボタン（テキスト版最適化） ===== */
+.actions {
+  display: flex;
+  gap: 6px;
+}
+
+.actions button {
+  flex: 1;                 /* 全ボタン同じ幅 */
+  padding: 6px 0;
+  font-size: 14px;
+  white-space: nowrap;     /* 改行防止 */
+}
+
+}
