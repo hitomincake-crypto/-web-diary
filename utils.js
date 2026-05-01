@@ -46,6 +46,8 @@ export function linkify(text) {
     .replace(urlRegex, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
 }
 
+const titleCache = {};
+
 export async function linkifyWithTitle(text) {
 if (!text) return "";
 
@@ -58,22 +60,35 @@ return text.replace(/\n/g, "<br>");
 
 let result = text;
 
-for (const url of urls) {
+// 🔥 並列取得
+const promises = urls.map(async (url) => {
+
+
+if (titleCache[url]) {
+  return { url, title: titleCache[url] };
+}
+
 try {
-const res = await fetch(`https://api.microlink.io?url=${encodeURIComponent(url)}`);
-const data = await res.json();
+  const res = await fetch(`https://api.microlink.io?url=${encodeURIComponent(url)}`);
+  const data = await res.json();
 
   const title = data?.data?.title || url;
+  titleCache[url] = title;
 
-  const link = `<a href="${url}" target="_blank" rel="noopener noreferrer">${title}</a>`;
-  result = result.replace(url, link);
+  return { url, title };
 
 } catch {
-  const fallback = `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
-  result = result.replace(url, fallback);
+  return { url, title: url };
 }
 
 
+});
+
+const results = await Promise.all(promises);
+
+for (const { url, title } of results) {
+const link = `<a href="${url}" target="_blank" rel="noopener noreferrer">${title}</a>`;
+result = result.replace(url, link);
 }
 
 return result.replace(/\n/g, "<br>");

@@ -225,8 +225,14 @@ window.viewDiary = async (id) => {
   document.getElementById("viewMeta").textContent =
     (data.nickname || "") + " " + formatTime(data.createdAt);
 
+  // 🔥 先に表示
+  document.getElementById("viewContent").innerHTML = "読み込み中...";
+
+  showView("viewDiaryView");
+
+  // 🔥 後から置き換え
   document.getElementById("viewContent").innerHTML =
-  await linkifyWithTitle(data.content || "");
+    await linkifyWithTitle(data.content || "");
 
   document.getElementById("viewComment").textContent =
     data.comment || "";
