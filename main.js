@@ -294,7 +294,9 @@ window.editDiary = async (id)=>{
 // 保存（コメント対応）
 // =============================
 window.saveDiary = async ()=>{
-  const date = new Date();
+    const { start } = getDayRange(selectedDateStr);
+
+    console.log("保存日:", start);
 
   if(editingId){
 
@@ -324,7 +326,7 @@ window.saveDiary = async ()=>{
       content: content.value,
       comment: comment.value || "",
       commentUpdatedAt: new Date(),
-      createdAt: date,
+      createdAt: start,
       isDeleted: false
     });
   }
