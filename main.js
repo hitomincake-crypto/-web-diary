@@ -106,22 +106,36 @@ async function renderCalendar(){
   }
 
   const map = {};
-  const commentMap = {};
-
+  
   snap.forEach(d=>{
-    const data = d.data();
-    if (data.isDeleted) return;
+  const data = d.data();
+  console.log(data.nickname);
+  if (data.isDeleted) return;
 
-    const dateKey = toDateKey(data.createdAt);
-    if (!dateKey) return;
+  const dateKey = toDateKey(data.createdAt);
+  if (!dateKey) return;
 
-    map[dateKey] = true;
+  if (!map[dateKey]) {
+    map[dateKey] = {};
+  }
 
-    if (data.comment) {
-      commentMap[dateKey] = true;
-    }
-  });
+  const nick = data.nickname || "";
+  const initial = nick.charAt(0);
 
+  if (!map[dateKey][initial]) {
+    map[dateKey][initial] = {
+      hasPost: false,
+      hasComment: false
+    };
+  }
+
+  map[dateKey][initial].hasPost = true;
+
+  if (data.comment) {
+    map[dateKey][initial].hasComment = true;
+  }
+});
+console.log(map);
   const first = new Date(y,m,1).getDay();
   const last = new Date(y,m+1,0).getDate();
 
@@ -135,22 +149,39 @@ async function renderCalendar(){
     const cell = document.createElement("div");
     cell.className = "day";
 
-    if (map[ds]) cell.classList.add("has-post");
+if (map[ds]) {
+  cell.classList.add("has-post");
+}
 
-    if (commentMap[ds]) {
-      cell.style.textDecoration = "underline";
+const dayNumber = document.createElement("div");
+dayNumber.textContent = d;
+
+cell.appendChild(dayNumber);
+
+const info = map[ds];
+
+if (info) {
+  Object.keys(info).forEach((initial) => {
+
+    const span = document.createElement("span");
+    span.textContent = initial;
+    span.className = "initial";
+
+    // 左右固定
+    if (initial === "た") {
+      span.classList.add("left");
+    } else if (initial === "ひ") {
+      span.classList.add("right");
     }
 
-    const todayKey = toDateKey(new Date());
-    if (ds === todayKey) {
-      cell.style.border = "2px solid black";
+    if (info[initial].hasComment) {
+      span.style.textDecoration = "underline";
     }
 
-    cell.textContent = d;
-    cell.onclick = ()=>openDay(ds);
-
-    calendar.appendChild(cell);
-  }
+    cell.appendChild(span);
+  });
+}
+calendar.appendChild(cell);
 }
 
 // 🔥 必須（ボタン動作）
@@ -333,3 +364,6 @@ window.openEditor = ()=>{
   editingId=null;
   showView("editorView");
 };
+
+const info = map[ds];
+}

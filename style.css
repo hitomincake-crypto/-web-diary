@@ -149,5 +149,24 @@ a {
   text-decoration: underline;
   word-break: break-all;
 }
+.day {
+  position: relative;
+}
+
+.initial {
+  position: absolute;
+  font-size: 12px;
+  z-index: 10;
+}
+
+.initial.left {
+  left: 4px;
+  top: 2px;
+}
+
+.initial.right {
+  right: 4px;
+  top: 2px;
+}
 
 }
