@@ -149,24 +149,27 @@ a {
   text-decoration: underline;
   word-break: break-all;
 }
+
+}
 .day {
   position: relative;
 }
 
 .initial {
   position: absolute;
-  font-size: 12px;
+  font-size: 11px;
+  line-height: 1;
   z-index: 10;
 }
 
+/* 左（たく） */
 .initial.left {
-  left: 4px;
+  left: 2px;
   top: 2px;
 }
 
+/* 右（ひとみん） */
 .initial.right {
-  right: 4px;
+  right: 2px;
   top: 2px;
-}
-
 }

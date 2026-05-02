@@ -121,6 +121,7 @@ async function renderCalendar(){
 
   const nick = data.nickname || "";
   const initial = nick.charAt(0);
+  console.log("initial:", initial);
 
   if (!map[dateKey][initial]) {
     map[dateKey][initial] = {
@@ -366,5 +367,4 @@ window.openEditor = ()=>{
   showView("editorView");
 };
 
-const info = map[ds];
 }
