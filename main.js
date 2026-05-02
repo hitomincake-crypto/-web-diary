@@ -148,6 +148,7 @@ console.log(map);
 
     const cell = document.createElement("div");
     cell.className = "day";
+    cell.onclick = ()=>openDay(ds);
 
 if (map[ds]) {
   cell.classList.add("has-post");
