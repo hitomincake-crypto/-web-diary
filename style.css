@@ -173,3 +173,8 @@ a {
   right: 2px;
   top: 2px;
 }
+
+#viewContent,
+#viewComment {
+  white-space: pre-wrap;
+}
