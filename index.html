@@ -38,7 +38,29 @@
         <h2 id="monthLabel"></h2>
         <button onclick="nextMonth()">→</button>
       </div>
-      <div id="calendar"></div>
+      <div class="calendar-layout">
+        <div id="calendar"></div>
+        <div class="calendar-actions">
+          <button onclick="openCollection('schedule')">予定</button>
+          <button onclick="openCollection('memo')">メモ</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 予定一覧 -->
+    <div id="scheduleView" class="card" style="display:none;">
+      <button onclick="showView('calendarView')">←戻る</button>
+      <h3>予定</h3>
+      <div id="scheduleList"></div>
+      <button class="fab" onclick="openCollectionEditor('schedule')">＋</button>
+    </div>
+
+    <!-- メモ一覧 -->
+    <div id="memoView" class="card" style="display:none;">
+      <button onclick="showView('calendarView')">←戻る</button>
+      <h3>メモ</h3>
+      <div id="memoList"></div>
+      <button class="fab" onclick="openCollectionEditor('memo')">＋</button>
     </div>
 
     <!-- 日別 -->
@@ -51,7 +73,7 @@
 
     <!-- 投稿 -->
     <div id="editorView" class="card" style="display:none;">
-      <button onclick="showView('dayView')">←戻る</button>
+      <button onclick="goBackFromEditor()">←戻る</button>
       <h3 id="editorTitle">日記を書く</h3>
       <input id="title" placeholder="タイトル">
       <textarea id="content" placeholder="本文"></textarea>
@@ -61,7 +83,7 @@
 
     <!-- 閲覧画面（追加） -->
     <div id="viewDiaryView" class="card" style="display:none;">
-      <button onclick="showView('dayView')">←戻る</button>
+      <button onclick="goBackFromViewer()">←戻る</button>
       <h3 id="viewTitle"></h3>
       <div id="viewMeta" class="nickname"></div>
       <p id="viewContent" style="white-space:pre-wrap;"></p>

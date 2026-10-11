@@ -178,3 +178,59 @@ a {
 #viewComment {
   white-space: pre-wrap;
 }
+
+
+/* カレンダー右側の予定・メモ */
+.calendar-layout {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.calendar-layout #calendar {
+  flex: 1;
+  min-width: 0;
+}
+
+.calendar-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 64px;
+  margin-top: 20px;
+}
+
+.calendar-actions button {
+  width: 100%;
+  margin-top: 0;
+  padding: 8px 4px;
+  background: #2e7d32;
+}
+
+@media (max-width: 768px) {
+  .calendar-layout {
+    gap: 6px;
+  }
+
+  .calendar-actions {
+    min-width: 56px;
+  }
+
+  .calendar-actions button {
+    font-size: 14px;
+    padding: 8px 2px;
+  }
+}
+
+
+/* カレンダーの曜日見出しと週末の色 */
+#calendar .weekday {
+  text-align: center;
+  font-weight: bold;
+  padding: 4px 0;
+}
+
+#calendar .weekday.weekend,
+#calendar .day.weekend .day-number {
+  color: #1a73e8;
+}
